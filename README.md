@@ -149,8 +149,8 @@ La aplicación incluye configuración completa para Docker:
 
 - **Dockerfile**: Imagen optimizada de Python
 - **docker-compose.yml**: Orquestación con MongoDB
-- **Scripts de inicio**: Automatización del despliegue
 - **Persistencia de datos**: Volúmenes para MongoDB
+- **Documentación específica**: Ver DOCKER_README.md para detalles técnicos
 
 ## 🔧 Configuración
 
