@@ -1,0 +1,45 @@
+services:
+  # Servicio de MongoDB
+  mongodb:
+    image: mongo:7.0
+    container_name: bank_mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: bank_db
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - bank_network
+
+  # Servicio de la API FastAPI
+  api:
+    build: .
+    container_name: bank_api
+    restart: unless-stopped
+    ports:
+      - "8001:8000"  # Puerto 8001 externamente, 8000 internamente
+    environment:
+      - MONGODB_URL=mongodb://mongodb:27017/bank_db
+    depends_on:
+      - mongodb
+    networks:
+      - bank_network
+    # Espera a que MongoDB esté listo antes de iniciar
+    command: >
+      sh -c "
+        echo 'Esperando a que MongoDB esté listo...' &&
+        while ! nc -z mongodb 27017; do sleep 1; done &&
+        echo 'MongoDB está listo, iniciando la API...' &&
+        uvicorn app.main:app --host 0.0.0.0 --port 8000
+      "
+
+# Volumen para persistir los datos de MongoDB
+volumes:
+  mongodb_data:
+
+# Red para que los contenedores se comuniquen
+networks:
+  bank_network:
+    driver: bridge
