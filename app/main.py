@@ -23,7 +23,7 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-app.include_router(acounts.router, prefix="/api/v1")
+app.include_router(acounts.router)
 
 @app.get("/", include_in_schema=False)
 async def redirect_to_docs():

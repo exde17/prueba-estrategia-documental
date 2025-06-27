@@ -1,8 +1,8 @@
-# 🏦 API Bancaria - FastAPI + MongoDB
+# API Bancaria - FastAPI + MongoDB
 
-Una API REST completa para gestión de cuentas bancarias desarrollada con FastAPI y MongoDB, con soporte completo para Docker.
+Prueba técnica Desarrollador Backend Python - ED Software y Desarrollo SAS.
 
-## ✨ Características
+## Características
 
 - ✅ **CRUD completo** de cuentas bancarias
 - ✅ **Actualización flexible** de nombre del titular y saldo

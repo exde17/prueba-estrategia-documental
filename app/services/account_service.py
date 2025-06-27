@@ -1,7 +1,7 @@
 from typing import List, Optional
 from app.crud.account import AccountCRUD
 from app.models.account import Account
-from app.schemas.account import AccountCreate
+from app.schemas.account import AccountCreate, AccountUpdate
 
 class AccountService:
     def __init__(self, account_crud: AccountCRUD):
@@ -21,8 +21,11 @@ class AccountService:
 
     async def update_account_balance_service(self, account_id: str, amount: float) -> Optional[Account]:
         """Actualiza el saldo de una cuenta."""
-        return await self.account_crud.update_account_balance(account_id, amount)
+        update_data = {"amount": amount}
+        return await self.account_crud.update_account(account_id, update_data)
 
-    async def update_account_service(self, account_id: str, account_holder_name: Optional[str] = None, amount: Optional[float] = None) -> Optional[Account]:
+    async def update_account_service(self, account_id: str, update_data: AccountUpdate) -> Optional[Account]:
         """Actualiza los campos especificados de una cuenta."""
-        return await self.account_crud.update_account(account_id, account_holder_name, amount)
+        # Convertir el modelo Pydantic a diccionario, excluyendo valores None
+        update_dict = update_data.model_dump(exclude_none=True)
+        return await self.account_crud.update_account(account_id, update_dict)

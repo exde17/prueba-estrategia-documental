@@ -54,21 +54,26 @@ class AccountCRUD:
             return Account(**result)
         return None
 
-    async def update_account(self, account_id: str, account_holder_name: Optional[str] = None, amount: Optional[float] = None) -> Optional[Account]:
+    async def update_account(self, account_id: str, update_data: dict) -> Optional[Account]:
         """Actualiza los campos especificados de una cuenta."""
         if not ObjectId.is_valid(account_id):
             return None
         
         # Construir el documento de actualización dinámicamente
         update_doc = {}
+        set_fields = {}
         
-        # Si se proporciona un nuevo nombre, actualizar
-        if account_holder_name is not None:
-            update_doc["$set"] = {"account_holder_name": account_holder_name}
+        # Procesar todos los campos de actualización excepto 'amount'
+        for field, value in update_data.items():
+            if field == "amount" and value is not None:
+                # El amount se maneja como incremento/decremento del saldo
+                update_doc["$inc"] = {"balance": value}
+            elif value is not None and field != "amount":
+                set_fields[field] = value
         
-        # Si se proporciona una cantidad, incrementar/decrementar el saldo
-        if amount is not None:
-            update_doc["$inc"] = {"balance": amount}
+        # Si hay campos para actualizar con $set
+        if set_fields:
+            update_doc["$set"] = set_fields
         
         # Si no hay nada que actualizar, devolver None
         if not update_doc:
