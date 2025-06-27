@@ -129,25 +129,209 @@ docker-compose exec api python -m pytest tests/ -v
 -  Manejo de errores (cuentas inexistentes, IDs inválidos)
 -  Mensajes de error en español
 
-## Arquitectura
+## Arquitectura y Patrones de Desarrollo
+
+### Arquitectura Implementada
+
+**Arquitectura Hexagonal (Ports and Adapters)**
+
+La aplicación sigue los principios de la arquitectura hexagonal, también conocida como arquitectura de puertos y adaptadores, que proporciona:
+
+- **Separación de responsabilidades**: Cada capa tiene una función específica
+- **Independencia de frameworks**: La lógica de negocio no depende de detalles de implementación
+- **Testabilidad**: Facilita las pruebas unitarias y de integración
+- **Mantenibilidad**: Código más limpio y fácil de modificar
+
+### Capas de la Arquitectura
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    API Layer                            │
+│              (FastAPI Endpoints)                        │
+└─────────────────────┬───────────────────────────────────┘
+                      │
+┌─────────────────────▼───────────────────────────────────┐
+│                Service Layer                            │
+│              (Business Logic)                           │
+└─────────────────────┬───────────────────────────────────┘
+                      │
+┌─────────────────────▼───────────────────────────────────┐
+│                 CRUD Layer                              │
+│            (Data Access Logic)                          │
+└─────────────────────┬───────────────────────────────────┘
+                      │
+┌─────────────────────▼───────────────────────────────────┐
+│              Database Layer                             │
+│                (MongoDB)                                │
+└─────────────────────────────────────────────────────────┘
+```
+
+### Patrones de Desarrollo Utilizados
+
+#### 1. **Patrón de repositorio**
+- **Ubicación**: `app/crud/account.py`
+- **Propósito**: Abstrae el acceso a datos
+- **Beneficios**: Facilita el testing y permite cambiar la implementación de base de datos sin afectar la lógica de negocio
+
+```python
+class AccountRepository:
+    async def create(self, account_data: dict) -> Account
+    async def get_all(self) -> List[Account]
+    async def update(self, account_id: str, update_data: dict) -> Account
+```
+
+#### 2. **Patrón de capa de servicio**
+- **Ubicación**: `app/services/account_service.py`
+- **Propósito**: Encapsula la lógica de negocio
+- **Beneficios**: Centraliza las reglas de negocio y coordina operaciones entre diferentes repositorios
+
+#### 3. **Patrón de objeto de transferencia de datos (DTO)**
+- **Ubicación**: `app/schemas/account.py`
+- **Propósito**: Define contratos de datos entre capas
+- **Beneficios**: Validación automática, documentación de API, y separación entre modelos de dominio y de presentación
+
+```python
+class AccountCreate(BaseModel):  # DTO para creación
+class AccountUpdate(BaseModel):  # DTO para actualización
+class AccountResponse(BaseModel): # DTO para respuesta
+```
+
+#### 4. **Patrón de inyección de dependencia**
+- **Ubicación**: `app/core/database.py`
+- **Propósito**: Inyección de dependencias (base de datos, servicios)
+- **Beneficios**: Desacoplamiento, testabilidad, y configuración centralizada
+
+#### 5. **Patrón de fábrica**
+- **Ubicación**: `app/core/config.py`
+- **Propósito**: Creación de objetos de configuración
+- **Beneficios**: Configuración centralizada y gestión de entornos
+
+#### 6. **Patrón de fachada**
+- **Ubicación**: `app/api/endpoints/accounts.py`
+- **Propósito**: Simplifica la interfaz de los endpoints
+- **Beneficios**: Oculta la complejidad de las operaciones internas
+
+### Principios SOLID Aplicados
+
+#### **S - Principio de responsabilidad única**
+- Cada clase tiene una única responsabilidad
+- `AccountRepository`: Solo maneja persistencia
+- `AccountService`: Solo maneja lógica de negocio
+- `AccountEndpoints`: Solo maneja HTTP
+
+#### **O - Principio Abierto/Cerrado**
+- Extensible sin modificar código existente
+- Nuevos tipos de validación se pueden agregar sin cambiar esquemas existentes
+
+#### **L - Principio de sustitución de Liskov**
+- Las abstracciones pueden ser sustituidas por sus implementaciones
+- Los esquemas Pydantic pueden ser intercambiados
+
+#### **I - Principio de segregación de interfaz**
+- Interfaces específicas para cada funcionalidad
+- Esquemas separados para Create, Update, y Response
+
+#### **D - Principio de inversión de dependencia**
+- Dependencias de abstracciones, no de concreciones
+- La lógica de negocio no depende de detalles de MongoDB
+
+### Patrones de Configuración
+
+#### **Environment-based Configuration**
+```python
+# Configuración por entorno
+MONGODB_URL = "mongodb://localhost:27017/bank_db"  # Desarrollo
+MONGODB_URL = "mongodb://user:pass@prod-db:27017/bank_db"  # Producción
+```
+
+#### **Graceful Degradation**
+- Manejo de errores sin interrumpir el servicio
+- Mensajes de error informativos en español
+- Logs estructurados para debugging
+
+### Ventajas de la Arquitectura Elegida
+
+1. **Mantenibilidad**: Código organizado y fácil de modificar
+2. **Testabilidad**: Cada capa se puede probar independientemente
+3. **Escalabilidad**: Fácil agregar nuevas funcionalidades
+4. **Flexibilidad**: Cambiar implementaciones sin afectar otras capas
+5. **Reutilización**: Componentes reutilizables en diferentes contextos
+
+### Estructura del Proyecto
 
 ```
 app/
 ├── api/
-│   └── endpoints/      # Controladores REST
+│   └── endpoints/          #    Capa de Presentación (Controllers)
+│       └── accounts.py     #    - Manejo de HTTP requests/responses
+│                           #    - Validación de entrada
+│                           #    - Serialización de salida
 ├── core/
-│   ├── config.py      # Configuración
-│   └── database.py    # Conexión a MongoDB
+│   ├── config.py          #   Configuración centralizada
+│   └── database.py        #  Conexión y gestión de base de datos
 ├── crud/
-│   └── account.py     # Operaciones de base de datos
+│   └── account.py         #   Capa de Acceso a Datos (Repository)
+│                          #    - Operaciones CRUD
+│                          #    - Abstracción de base de datos
 ├── models/
-│   └── account.py     # Modelos de datos
+│   └── account.py         #   Modelos de Dominio
+│                          #    - Entidades de negocio
+│                          #    - Reglas de dominio
 ├── schemas/
-│   └── account.py     # Esquemas de validación
+│   └── account.py         #  Data Transfer Objects (DTOs)
+│                          #    - Contratos de API
+│                          #    - Validaciones Pydantic
 ├── services/
-│   └── account_service.py  # Lógica de negocio
-└── main.py           # Punto de entrada
+│   └── account_service.py #  Capa de Lógica de Negocio
+│                          #    - Reglas de negocio
+│                          #    - Coordinación entre repositorios
+└── main.py                #  Punto de entrada y configuración
 ```
+
+### Patrones de Validación y Manejo de Errores
+
+#### **Validation Pattern**
+```python
+# Validaciones en cascada
+1. Pydantic Schema Validation (Entrada)
+2. Business Logic Validation (Servicio)
+3. Database Constraint Validation (Repository)
+```
+
+#### **Error Handling Strategy**
+- **HTTP Exception Handling**: Respuestas HTTP apropiadas
+- **Logging Strategy**: Logs estructurados para debugging
+- **User-Friendly Messages**: Mensajes en español para el usuario final
+
+### Patrones de Testing
+
+#### **Implementación de la pirámide de prueba**
+```
+    E2E Tests (Integration)
+    - Test completos de API
+    Unit Tests (Isolated)
+    - Test de cada componente
+```
+
+#### **Patrones de prueba utilizados**
+- **Arrange-Act-Assert (AAA)**: Estructura clara de tests
+- **Test Fixtures**: Datos de prueba reutilizables
+- **Mocking**: Aislamiento de dependencias externas
+- **Async Testing**: Pruebas para código asíncrono
+
+### Consideraciones de Escalabilidad
+
+#### **Escalamiento horizontal listo**
+- Stateless API design
+- Database connection pooling
+- Container-based deployment
+
+#### **Patrones de rendimiento**
+- **Database Indexing**: Índices en campos frecuentemente consultados
+- **Connection Pooling**: Reutilización de conexiones de base de datos
+- **Async Operations**: Operaciones no bloqueantes
+
+Esta arquitectura proporciona una base sólida para el crecimiento y mantenimiento de la aplicación bancaria, siguiendo las mejores prácticas de desarrollo de software moderno.
 
 ## Docker
 
