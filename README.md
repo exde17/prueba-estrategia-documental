@@ -53,8 +53,6 @@ pytest tests/ -v
 
 ## Endpoints de la API
 
-| Método | Endpoint | Descripción |
-|--------|----------|-------------|
 | `POST` | `/accounts` | Crear nueva cuenta |
 | `GET` | `/accounts` | Listar todas las cuentas |
 | `PATCH` | `/accounts/{id}` | Actualizar cuenta (nombre y/o saldo) |
