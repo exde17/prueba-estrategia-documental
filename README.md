@@ -4,16 +4,16 @@ Prueba técnica Desarrollador Backend Python - ED Software y Desarrollo SAS.
 
 ## Características
 
-- ✅ **CRUD completo** de cuentas bancarias
-- ✅ **Actualización flexible** de nombre del titular y saldo
-- ✅ **Validaciones personalizadas** en español
-- ✅ **Pruebas unitarias** completas (10/10 tests)
-- ✅ **Documentación interactiva** con Swagger UI
-- ✅ **Containerización** con Docker y Docker Compose
-- ✅ **Mensajes de error** personalizados en español
-- ✅ **Arquitectura limpia** con separación de responsabilidades
+-  **CRUD completo** de cuentas bancarias
+-  **Actualización flexible** de nombre del titular y saldo
+-  **Validaciones personalizadas** en español
+-  **Pruebas unitarias** completas (10/10 tests)
+-  **Documentación interactiva** con Swagger UI
+-  **Containerización** con Docker y Docker Compose
+-  **Mensajes de error** personalizados en español
+-  **Arquitectura limpia** con separación de responsabilidades
 
-## 🚀 Inicio Rápido
+##  Inicio Rápido
 
 ### Opción 1: Con Docker (Recomendado)
 
@@ -28,6 +28,7 @@ docker-compose up --build -d
 # 3. Accede a la aplicación
 # API: http://localhost:8001
 # Documentación: http://localhost:8001/documentacion
+# Mongo Express: http://localhost:8081
 ```
 
 ### Opción 2: Desarrollo Local
@@ -50,40 +51,47 @@ uvicorn app.main:app --reload
 pytest tests/ -v
 ```
 
-## 📋 Endpoints de la API
+## Endpoints de la API
 
 | Método | Endpoint | Descripción |
 |--------|----------|-------------|
-| `POST` | `/api/v1/cuentas` | Crear nueva cuenta |
-| `GET` | `/api/v1/cuentas` | Listar todas las cuentas |
-| `PATCH` | `/api/v1/cuentas/{id}` | Actualizar cuenta (nombre y/o saldo) |
+| `POST` | `/accounts` | Crear nueva cuenta |
+| `GET` | `/accounts` | Listar todas las cuentas |
+| `PATCH` | `/accounts/{id}` | Actualizar cuenta (nombre y/o saldo) |
 
 ### Ejemplos de Uso
 
 #### Crear cuenta
 ```http
-POST /api/v1/cuentas
+POST http://localhost:8001/accounts
 Content-Type: application/json
 
 {
-  "account_holder_name": "Juan Pérez",
-  "balance": 1000.0
+  "account_number": "PATCH-TEST-001",
+  "account_type": "checking", 
+  "customer_name": "jose contreras",
+  "document_type": "CC",
+  "document_number": "87654321",
+  "phone": "555-9876",
+  "email": "patch@example.com",
+  "address": "Calle Patch 456",
+  "balance": 750.0
 }
 ```
 
 #### Actualizar solo el nombre
 ```http
-PATCH /api/v1/cuentas/{account_id}
+PATCH http://localhost:8001/accounts/{account_id}
 Content-Type: application/json
 
 {
-  "account_holder_name": "Juan Carlos Pérez"
+  "customer_name": "Juan Carlos Pérez"
 }
 ```
 
 #### Actualizar solo el saldo
 ```http
-PATCH /api/v1/cuentas/{account_id}
+PATCH http://localhost:8001/accounts/{account_id}
 Content-Type: application/json
 
 {
@@ -93,16 +101,16 @@ Content-Type: application/json
 
 #### Actualizar nombre y saldo
 ```http
-PATCH /api/v1/cuentas/{account_id}
+PATCH http://localhost:8001/accounts/{account_id}
 Content-Type: application/json
 
 {
-  "account_holder_name": "Juan Carlos Pérez",
+  "customer_name": "Juan Carlos Pérez",
   "amount": -100.0
 }
 ```
 
-## 🧪 Pruebas
+## Pruebas
 
 ### Ejecutar todas las pruebas
 ```bash
@@ -114,16 +122,16 @@ docker-compose exec api python -m pytest tests/ -v
 ```
 
 ### Cobertura de pruebas
-- ✅ Creación de cuentas
-- ✅ Listado de cuentas
-- ✅ Actualización de saldo
-- ✅ Actualización de nombre del titular
-- ✅ Actualización combinada (nombre + saldo)
-- ✅ Validación de datos inválidos
-- ✅ Manejo de errores (cuentas inexistentes, IDs inválidos)
-- ✅ Mensajes de error en español
+-  Creación de cuentas
+-  Listado de cuentas
+-  Actualización de saldo
+-  Actualización de nombre del titular
+-  Actualización combinada (nombre + saldo)
+-  Validación de datos inválidos
+-  Manejo de errores (cuentas inexistentes, IDs inválidos)
+-  Mensajes de error en español
 
-## 🏗️ Arquitectura
+## Arquitectura
 
 ```
 app/
@@ -143,16 +151,12 @@ app/
 └── main.py           # Punto de entrada
 ```
 
-## 🐳 Docker
+## Docker
 
 La aplicación incluye configuración completa para Docker:
 
-- **Dockerfile**: Imagen optimizada de Python
-- **docker-compose.yml**: Orquestación con MongoDB
-- **Persistencia de datos**: Volúmenes para MongoDB
-- **Documentación específica**: Ver DOCKER_README.md para detalles técnicos
 
-## 🔧 Configuración
+## Configuración
 
 ### Variables de entorno
 ```bash
@@ -160,30 +164,24 @@ MONGODB_URI=mongodb://localhost:27017/bank_db
 DATABASE_NAME=bank_db
 ```
 
-### Desarrollo
-```bash
-# Copiar archivo de configuración
-cp .env.example .env
-# Editar según necesidades
-```
-
-## 📝 Validaciones
+## Validaciones
 
 La API incluye validaciones completas:
 
-- **Nombre del titular**: Mínimo 3 caracteres, máximo 100
+- **Número de cuenta**: Formato válido requerido
+- **Tipo de cuenta**: "savings" o "checking"
+- **Nombre del cliente**: Mínimo 3 caracteres, máximo 100
+- **Tipo de documento**: CC, CE, TI, PP, NIT, RUT, RC
+- **Número de documento**: Mínimo 5 caracteres
+- **Teléfono**: Mínimo 7 caracteres
+- **Email**: Formato de email válido
+- **Dirección**: Mínimo 5 caracteres
 - **Saldo**: No puede ser negativo
 - **Actualizaciones**: Al menos un campo debe ser proporcionado
 - **IDs**: Validación de formato ObjectId de MongoDB
 
-## 🌍 Internacionalización
 
-Todos los mensajes de error están en español:
-- Validaciones de Pydantic personalizadas
-- Mensajes de error HTTP descriptivos
-- Documentación en español
-
-## 🔍 Monitoreo
+## Monitoreo
 
 ### Logs de Docker
 ```bash
@@ -194,11 +192,11 @@ docker-compose logs mongodb
 
 ### Health Checks
 ```bash
-curl http://localhost:8001/docs  # Documentación
-curl http://localhost:8001/api/v1/cuentas  # Endpoint de prueba
+curl http://localhost:8001/documentacion  # Documentación
+curl http://localhost:8001/accounts  # Endpoint de prueba
 ```
 
-## 🛠️ Comandos Útiles
+## Comandos Útiles
 
 ```bash
 # Docker
@@ -209,24 +207,12 @@ docker-compose logs -f          # Ver logs en tiempo real
 
 # Desarrollo
 uvicorn app.main:app --reload   # Servidor de desarrollo
-pytest tests/ -v --cov=app     # Pruebas con cobertura
+
 ```
-
-## 🤝 Contribución
-
-1. Fork el proyecto
-2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
-3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
-4. Push a la rama (`git push origin feature/AmazingFeature`)
-5. Abre un Pull Request
-
-## 📄 Licencia
-
-Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) para más detalles.
 
 ---
 
-**Prueba Técnica Completada** ✅
+**Prueba Técnica Completada** 
 - API REST funcional
 - Pruebas unitarias completas
 - Dockerización completa
