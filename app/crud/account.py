@@ -29,7 +29,7 @@ class AccountCRUD:
     async def get_account_by_id(self, account_id: str) -> Optional[Account]:
         """Obtiene una cuenta por su ID."""
         if not ObjectId.is_valid(account_id):
-            return None # O raise ValueError
+            return None 
         account = await self.collection.find_one({"_id": ObjectId(account_id)})
         if account:
             # Convertir ObjectId a string para Pydantic

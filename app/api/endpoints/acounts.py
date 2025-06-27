@@ -6,12 +6,12 @@ from app.core.database import get_database
 from app.crud.account import AccountCRUD
 from app.services.account_service import AccountService
 from app.schemas.account import AccountCreate, AccountUpdate, AccountResponse
-# from app.models.account import Account  # Removed because it is unused or the import path is incorrect
+
 
 
 router = APIRouter()
 
-# Dependencia para obtener una instancia de AccountService
+# Dependencia para obtener una instancia de accountService
 async def get_account_service(db: AsyncIOMotorDatabase = Depends(get_database)) -> AccountService:
     crud = AccountCRUD(db)
     service = AccountService(crud)
@@ -35,7 +35,7 @@ async def create_bank_account(
     - **balance**: Saldo inicial (opcional, por defecto 0.0).
     """
     new_account = await account_service.create_new_account(account_data)
-    # Convertir el modelo Account a AccountResponse
+    # Convertir el modelo account a accountResponse
     return AccountResponse(
         id=new_account.id,
         account_number=new_account.account_number,
@@ -73,7 +73,7 @@ async def update_account(
     updated_account = await account_service.update_account_service(account_id, update_data)
     if not updated_account:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Cuenta no encontrada o ID inválido")
-    # Convertir el modelo Account a AccountResponse
+    # Convertir el modelo account a accountResponse
     return AccountResponse(
         id=updated_account.id,
         account_number=updated_account.account_number,
@@ -95,7 +95,7 @@ async def list_all_accounts(
     Lista todas las cuentas bancarias con toda su información.
     """
     accounts = await account_service.retrieve_all_accounts()
-    # Convertir cada Account a AccountResponse
+    # Convertir cada account a accountResponse
     return [AccountResponse(
         id=account.id,
         account_number=account.account_number,
